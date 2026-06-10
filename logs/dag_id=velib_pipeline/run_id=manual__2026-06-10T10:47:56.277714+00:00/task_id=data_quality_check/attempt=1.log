@@ -1,0 +1,21 @@
+[2026-06-10T10:47:59.241+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-06-10T10:47:59.247+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: velib_pipeline.data_quality_check manual__2026-06-10T10:47:56.277714+00:00 [queued]>
+[2026-06-10T10:47:59.250+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: velib_pipeline.data_quality_check manual__2026-06-10T10:47:56.277714+00:00 [queued]>
+[2026-06-10T10:47:59.250+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 3
+[2026-06-10T10:47:59.255+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): data_quality_check> on 2026-06-10 10:47:56.277714+00:00
+[2026-06-10T10:47:59.258+0000] {logging_mixin.py:188} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:61 DeprecationWarning: This process (pid=579) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2026-06-10T10:47:59.258+0000] {standard_task_runner.py:63} INFO - Started process 580 to run task
+[2026-06-10T10:47:59.258+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'velib_pipeline', 'data_quality_check', 'manual__2026-06-10T10:47:56.277714+00:00', '--job-id', '78', '--raw', '--subdir', 'DAGS_FOLDER/velib_pipeline.py', '--cfg-path', '/tmp/tmpi2t20axu']
+[2026-06-10T10:47:59.259+0000] {standard_task_runner.py:91} INFO - Job 78: Subtask data_quality_check
+[2026-06-10T10:47:59.277+0000] {task_command.py:426} INFO - Running <TaskInstance: velib_pipeline.data_quality_check manual__2026-06-10T10:47:56.277714+00:00 [running]> on host 2ae0358597ce
+[2026-06-10T10:47:59.306+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='velib-pipeline' AIRFLOW_CTX_DAG_ID='velib_pipeline' AIRFLOW_CTX_TASK_ID='data_quality_check' AIRFLOW_CTX_EXECUTION_DATE='2026-06-10T10:47:56.277714+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-06-10T10:47:56.277714+00:00'
+[2026-06-10T10:47:59.306+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-06-10T10:47:59.313+0000] {velib_pipeline.py:191} INFO - DQ check [raw_stations]: 1517 rows
+[2026-06-10T10:47:59.314+0000] {velib_pipeline.py:191} INFO - DQ check [raw_station_status (last hour)]: 1532 rows
+[2026-06-10T10:47:59.331+0000] {velib_pipeline.py:191} INFO - DQ check [stream_events (last hour)]: 89500 rows
+[2026-06-10T10:47:59.331+0000] {python.py:237} INFO - Done. Returned value was: None
+[2026-06-10T10:47:59.332+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-06-10T10:47:59.335+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=velib_pipeline, task_id=data_quality_check, run_id=manual__2026-06-10T10:47:56.277714+00:00, execution_date=20260610T104756, start_date=20260610T104759, end_date=20260610T104759
+[2026-06-10T10:47:59.359+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2026-06-10T10:47:59.366+0000] {taskinstance.py:3498} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-06-10T10:47:59.367+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

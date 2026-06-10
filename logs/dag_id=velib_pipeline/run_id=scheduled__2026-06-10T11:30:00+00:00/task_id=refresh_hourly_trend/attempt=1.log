@@ -1,0 +1,19 @@
+[2026-06-10T11:35:01.886+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-06-10T11:35:01.894+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: velib_pipeline.refresh_hourly_trend scheduled__2026-06-10T11:30:00+00:00 [queued]>
+[2026-06-10T11:35:01.898+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: velib_pipeline.refresh_hourly_trend scheduled__2026-06-10T11:30:00+00:00 [queued]>
+[2026-06-10T11:35:01.898+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 3
+[2026-06-10T11:35:01.904+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): refresh_hourly_trend> on 2026-06-10 11:30:00+00:00
+[2026-06-10T11:35:01.907+0000] {logging_mixin.py:188} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:61 DeprecationWarning: This process (pid=1156) is multi-threaded, use of fork() may lead to deadlocks in the child.
+[2026-06-10T11:35:01.907+0000] {standard_task_runner.py:63} INFO - Started process 1157 to run task
+[2026-06-10T11:35:01.907+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'velib_pipeline', 'refresh_hourly_trend', 'scheduled__2026-06-10T11:30:00+00:00', '--job-id', '131', '--raw', '--subdir', 'DAGS_FOLDER/velib_pipeline.py', '--cfg-path', '/tmp/tmp5o78d4uv']
+[2026-06-10T11:35:01.911+0000] {standard_task_runner.py:91} INFO - Job 131: Subtask refresh_hourly_trend
+[2026-06-10T11:35:01.942+0000] {task_command.py:426} INFO - Running <TaskInstance: velib_pipeline.refresh_hourly_trend scheduled__2026-06-10T11:30:00+00:00 [running]> on host 2ae0358597ce
+[2026-06-10T11:35:02.004+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='velib-pipeline' AIRFLOW_CTX_DAG_ID='velib_pipeline' AIRFLOW_CTX_TASK_ID='refresh_hourly_trend' AIRFLOW_CTX_EXECUTION_DATE='2026-06-10T11:30:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-06-10T11:30:00+00:00'
+[2026-06-10T11:35:02.004+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-06-10T11:35:02.028+0000] {velib_pipeline.py:163} INFO - Refreshed agg_hourly_trend
+[2026-06-10T11:35:02.029+0000] {python.py:237} INFO - Done. Returned value was: None
+[2026-06-10T11:35:02.029+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-06-10T11:35:02.033+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=velib_pipeline, task_id=refresh_hourly_trend, run_id=scheduled__2026-06-10T11:30:00+00:00, execution_date=20260610T113000, start_date=20260610T113501, end_date=20260610T113502
+[2026-06-10T11:35:02.048+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2026-06-10T11:35:02.056+0000] {taskinstance.py:3498} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-06-10T11:35:02.056+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
