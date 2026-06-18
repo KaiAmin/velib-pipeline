@@ -147,7 +147,13 @@ def load_status(conn, statuses: list[dict]):
              num_ebikes, num_mechanical, is_installed, is_renting,
              is_returning, last_reported)
         VALUES %s
-        ON CONFLICT (station_code, last_reported) DO NOTHING
+        ON CONFLICT (station_code, last_reported) DO UPDATE SET
+            num_bikes_available = EXCLUDED.num_bikes_available,
+            num_docks_available = EXCLUDED.num_docks_available,
+            num_ebikes          = EXCLUDED.num_ebikes,
+            num_mechanical      = EXCLUDED.num_mechanical,
+            is_renting          = EXCLUDED.is_renting,
+            ingested_at         = NOW()
     """
     rows = [
         (s["station_code"], s["num_bikes_available"], s["num_docks_available"],
