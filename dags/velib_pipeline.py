@@ -17,8 +17,7 @@ All tasks have retries=2 and email_on_failure=False (no SMTP needed).
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.operators.bash import BashOperator
-from airflow.providers.http.sensors.http import HttpSensor
+import requests
 import psycopg2
 import logging
 import sys
@@ -57,16 +56,18 @@ with DAG(
 ) as dag:
 
     # ── Task 1: Check API is reachable ─────────────────────────────
-    check_api = HttpSensor(
+    def check_api_health(**context):
+        url = (
+            "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/"
+            "velib-disponibilite-en-temps-reel/"
+        )
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        log.info(f"API reachable — status {resp.status_code}")
+
+    check_api = PythonOperator(
         task_id="check_api",
-        http_conn_id="velib_api",          # configure in Airflow UI (or skip)
-        endpoint="/api/explore/v2.1/catalog/datasets/velib-disponibilite-en-temps-reel/",
-        request_params={},
-        response_check=lambda resp: resp.status_code == 200,
-        poke_interval=30,
-        timeout=120,
-        mode="poke",
-        soft_fail=True,   # don't kill the whole DAG if API is slow
+        python_callable=check_api_health,
     )
 
     # ── Task 2: Run batch ETL ──────────────────────────────────────
@@ -200,4 +201,4 @@ with DAG(
     )
 
     # ── Task dependencies ──────────────────────────────────────────
-    etl_ingest >> [refresh_agg, refresh_trend] >> dq_check
+    check_api >> etl_ingest >> [refresh_agg, refresh_trend] >> dq_check

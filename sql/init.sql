@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS raw_station_status (
     is_returning        BOOLEAN,
     last_reported       TIMESTAMP,
     ingested_at         TIMESTAMP DEFAULT NOW(),
-    -- Idempotency: avoid duplicates for same station + same last_reported
-    UNIQUE (station_code, last_reported)
+    UNIQUE (station_code, last_reported) -- Avoid duplicates for same station + same last_reported
+
 );
 
 -- ─────────────────────────────────────────────────────────────────

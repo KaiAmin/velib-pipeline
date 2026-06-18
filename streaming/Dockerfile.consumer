@@ -1,5 +1,5 @@
 FROM python:3.11-slim
 WORKDIR /app
-RUN pip install --no-cache-dir kafka-python psycopg2-binary
+RUN pip install --no-cache-dir "kafka-python==2.0.0" psycopg2-binary
 COPY consumer.py .
 CMD ["python", "consumer.py"]

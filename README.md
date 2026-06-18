@@ -1,101 +1,76 @@
-# 🚲 Vélib' Real-Time Analytics Pipeline
+# Vélib' Real-Time Analytics Pipeline
 
-> ETL & Pipeline Orchestration Final Project — ESILV MSc A4 | MACSIN4A2125
+ETL & Pipeline Orchestration Final Project — ESILV MSc A4 | MACSIN4A2125
 
-## Use Case
+## What is this project?
 
-**Problem:** Paris has 1,400+ Vélib' bike-sharing stations. Knowing where bikes are available in real-time — and spotting patterns by arrondissement and time of day — helps city planners, commuters, and mobility analysts.
+Paris has over 1,500 Vélib' bike-sharing stations spread across the city and surrounding areas. The idea behind this project was simple: build a pipeline that tracks live bike availability across all stations, aggregates the data by arrondissement, and displays everything on a dashboard that updates in real time.
 
-**Pipeline:** This project ingests live Vélib' availability data from the Paris Open Data API, processes it through a full ETL/ELT stack with Kafka streaming, orchestrates all tasks in Apache Airflow, and visualises results in a live Streamlit dashboard.
+The data comes from the Paris Open Data API which is free and requires no API key.
 
-## Architecture
+## How it works
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Paris Open Data API                       │
-│         (velib-disponibilite-en-temps-reel)                  │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-          ┌──────────────┼──────────────┐
-          │                             │
-   [Airflow DAG]                [Kafka Producer]
-   Every 5 min                  Every 60 sec
-          │                             │
-   ETL ingest.py               Kafka Topic: velib-status
-   (batch ETL)                          │
-          │                    [Kafka Consumer]
-          ▼                             │
-   ┌──────────────┐                     ▼
-   │  PostgreSQL  │◄──────── stream_events table
-   │              │
-   │  raw_stations│
-   │  raw_status  │
-   │  agg tables  │
-   └──────┬───────┘
-          │
-   [ELT SQL transforms]
-   (views + agg tables)
-          │
-          ▼
-   ┌──────────────┐
-   │  Streamlit   │
-   │  Dashboard   │
-   │  :8501       │
-   └──────────────┘
-```
+The pipeline runs two things in parallel:
 
-## Tech Stack
+**Batch side (Airflow):** every 5 minutes, a DAG fetches all station data from the API, cleans and transforms it, then loads it into PostgreSQL. SQL views and aggregation tables are refreshed after each run.
 
-| Layer          | Tool                          |
-|----------------|-------------------------------|
-| Ingestion      | Python `requests`, Kafka producer |
-| Storage        | PostgreSQL 15                 |
-| Transformation | pandas, SQL (views + inserts) |
-| Streaming      | Apache Kafka + Python consumer |
-| Orchestration  | Apache Airflow 2.9            |
-| Visualisation  | Streamlit + Plotly            |
-| Infrastructure | Docker Compose                |
+**Streaming side (Kafka):** a producer polls the API every 60 seconds and publishes each station snapshot to a Kafka topic. A consumer reads from that topic continuously and writes events to a stream_events table, including alerts like low_bikes and empty_station.
 
-## Dashboard (5 visualisations)
+The Streamlit dashboard reads from PostgreSQL and auto-refreshes every 60 seconds.
 
-1. **KPI Cards** — total bikes, e-bikes, docks, stations, empty stations, avg fill rate
-2. **Live Map** — colour-coded by fill rate (red=empty, green=full)
-3. **Bar Chart** — bikes available vs empty stations by arrondissement
-4. **Heatmap** — average fill rate by arrondissement
-5. **Event Stream** — live Kafka events (low_bikes, empty_station, full_station)
+## Tech stack
 
-## Project Structure
+| Layer | Tool |
+|---|---|
+| Ingestion | Python requests, Kafka producer |
+| Storage | PostgreSQL 15 |
+| Transformation | pandas, SQL views |
+| Streaming | Apache Kafka + Python consumer |
+| Orchestration | Apache Airflow 2.9 |
+| Visualisation | Streamlit + Plotly |
+| Infrastructure | Docker Compose |
+
+## Dashboard
+
+5 visualisations:
+
+1. KPI cards — total bikes, e-bikes, free docks, active stations, empty stations, avg fill rate
+2. Live map — all stations colour-coded by fill rate (red = empty, green = full)
+3. Bar chart — bikes available vs empty stations by arrondissement
+4. Heatmap — average fill rate by arrondissement
+5. Event stream — last 50 Kafka events with colour-coded alerts
+
+## Project structure
 
 ```
 velib-pipeline/
-├── docker-compose.yml       # Full stack definition
+├── docker-compose.yml
 ├── sql/
-│   └── init.sql             # Schema: raw + streaming + analytical layers
+│   └── init.sql
 ├── etl/
-│   └── ingest.py            # Batch ETL: extract → transform → load (idempotent)
+│   └── ingest.py
 ├── streaming/
-│   ├── producer.py          # Kafka producer (polls API every 60s)
-│   ├── consumer.py          # Kafka consumer (writes to stream_events)
+│   ├── producer.py
+│   ├── consumer.py
 │   ├── Dockerfile.producer
 │   └── Dockerfile.consumer
 ├── dags/
-│   └── velib_pipeline.py    # Airflow DAG (5 tasks, retries, scheduling)
+│   └── velib_pipeline.py
 ├── dashboard/
-│   ├── app.py               # Streamlit dashboard
+│   ├── app.py
 │   └── Dockerfile.dashboard
 ├── README.md
 └── SETUP.md
 ```
 
-## Running the Project
+## Running the project
 
-See [SETUP.md](SETUP.md) for full instructions.
+Full setup instructions are in SETUP.md.
 
-**Quick start:**
 ```bash
 docker compose up --build -d
 ```
 
-Then open:
-- **Dashboard:** http://localhost:8501
-- **Airflow:** http://localhost:8080 (admin / admin)
+Once everything is up:
+- Dashboard: http://localhost:8501
+- Airflow: http://localhost:8080 (admin / admin)

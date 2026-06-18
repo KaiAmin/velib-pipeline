@@ -4,11 +4,11 @@ dashboard/app.py
 Vélib' Real-Time Analytics Dashboard — Streamlit
 
 5 visualisations:
-  1. KPI cards        — total bikes, docks, stations, e-bikes
-  2. Map              — live station map (colour = fill rate)
-  3. Bar chart        — bikes available by arrondissement
-  4. Heatmap table    — empty vs full stations by arrondissement
-  5. Event stream     — latest Kafka events (rolling 50 rows)
+  1. KPI cards        : total bikes, docks, stations, e-bikes
+  2. Map              : live station map (colour = fill rate)
+  3. Bar chart        : bikes available by arrondissement
+  4. Heatmap table    : empty vs full stations by arrondissement
+  5. Event stream     : latest Kafka events (rolling 50 rows)
 
 Auto-refreshes every 60 seconds.
 """
@@ -20,7 +20,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # ─── Config ────────────────────────────────────────────────────────
 DB_CONFIG = {
@@ -147,28 +147,51 @@ def load_hourly_trend(station_code: str) -> pd.DataFrame:
 
 # ─── Layout ────────────────────────────────────────────────────────
 
-def render_dashboard():
-    st.title("🚲 Vélib' — Real-Time Analytics Pipeline")
-    st.caption(f"Last refresh: {datetime.now().strftime('%H:%M:%S')} · Auto-refresh every 60s")
+@st.fragment(run_every=5)
+def stream_section():
+    st.subheader("Live Kafka Event Stream (last 50 events)")
+    events_df = load_stream_events()
+    if not events_df.empty:
+        def colour_event(val):
+            colours = {
+                "empty_station": "background-color: #d62728; color: white",
+                "low_bikes":     "background-color: #ff7f0e; color: white",
+                "full_station":  "background-color: #1f77b4; color: white",
+                "snapshot":      "",
+            }
+            return colours.get(val, "")
 
+        st.dataframe(
+            events_df.style.map(colour_event, subset=["event_type"]),
+            use_container_width=True,
+            height=300,
+        )
+    else:
+        st.info("No streaming events yet, Kafka consumer starting up…")
+
+
+def render_dashboard():
+    st.title("Vélib' Real-Time Analytics Pipeline")
+    paris_tz = timezone(timedelta(hours=2))
+    st.caption(f"Last refresh: {datetime.now(paris_tz).strftime('%H:%M:%S')} (Paris) · Auto-refresh every 60s")
     # ── VIZ 1: KPI Cards ──────────────────────────────────────────
-    st.subheader("📊 Live KPIs")
+    st.subheader("Live KPIs")
     kpis = load_kpis()
     if kpis:
         c1, c2, c3, c4, c5, c6 = st.columns(6)
-        c1.metric("🚲 Bikes available",  int(kpis.get("total_bikes") or 0))
-        c2.metric("🔌 E-bikes",          int(kpis.get("total_ebikes") or 0))
-        c3.metric("🅿️ Docks free",       int(kpis.get("total_docks") or 0))
-        c4.metric("📍 Stations active",  int(kpis.get("total_stations") or 0))
-        c5.metric("⚠️ Empty stations",   int(kpis.get("empty_stations") or 0))
-        c6.metric("📈 Avg fill rate",    f"{float(kpis.get('avg_fill_pct') or 0):.1f}%")
+        c1.metric("Bikes available",  int(kpis.get("total_bikes") or 0))
+        c2.metric("E-bikes",          int(kpis.get("total_ebikes") or 0))
+        c3.metric("Docks free",       int(kpis.get("total_docks") or 0))
+        c4.metric("Stations active",  int(kpis.get("total_stations") or 0))
+        c5.metric("Empty stations",   int(kpis.get("empty_stations") or 0))
+        c6.metric("Avg fill rate",    f"{float(kpis.get('avg_fill_pct') or 0):.1f}%")
     else:
         st.info("No data yet — waiting for first ETL run …")
 
     st.divider()
 
     # ── VIZ 2: Live Station Map ────────────────────────────────────
-    st.subheader("🗺️ Live Station Map")
+    st.subheader("Live Station Map")
     map_df = load_station_map()
     if not map_df.empty:
         fig_map = px.scatter_mapbox(
@@ -207,7 +230,7 @@ def render_dashboard():
 
     # ── VIZ 3: Bikes by Arrondissement ────────────────────────────
     with col_left:
-        st.subheader("🏙️ Availability by Arrondissement")
+        st.subheader("Availability by Arrondissement")
         arr_df = load_by_arrondissement()
         if not arr_df.empty:
             fig_bar = px.bar(
@@ -237,7 +260,7 @@ def render_dashboard():
 
     # ── VIZ 4: Fill Rate Heatmap ───────────────────────────────────
     with col_right:
-        st.subheader("🔥 Fill Rate Heatmap")
+        st.subheader("Fill Rate Heatmap")
         arr_df2 = load_by_arrondissement()
         if not arr_df2.empty:
             fig_heat = go.Figure(go.Bar(
@@ -268,32 +291,11 @@ def render_dashboard():
     st.divider()
 
     # ── VIZ 5: Live Event Stream ───────────────────────────────────
-    st.subheader("⚡ Live Kafka Event Stream (last 50 events)")
-    events_df = load_stream_events()
-    if not events_df.empty:
-        # Colour-code event types
-        def colour_event(val):
-            colours = {
-                "empty_station": "background-color: #d62728; color: white",
-                "low_bikes":     "background-color: #ff7f0e; color: white",
-                "full_station":  "background-color: #1f77b4; color: white",
-                "snapshot":      "",
-            }
-            return colours.get(val, "")
-
-        st.dataframe(
-            events_df.style.map(colour_event, subset=["event_type"]),
-            use_container_width=True,
-            height=300,
-        )
-    else:
-        st.info("No streaming events yet — Kafka consumer starting up …")
+    stream_section()
 
 
 # ─── Main loop with auto-refresh ───────────────────────────────────
 
 render_dashboard()
-
-# Auto-refresh via Streamlit's built-in rerun
 time.sleep(60)
 st.rerun()

@@ -245,8 +245,6 @@ def run_etl():
     try:
         load_stations(conn, infos)
         load_status(conn, statuses)
-        refresh_agg_by_arrondissement(conn)
-        refresh_hourly_trend(conn)
     finally:
         conn.close()
 
